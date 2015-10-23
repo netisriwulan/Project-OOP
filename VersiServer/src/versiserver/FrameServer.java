@@ -5,19 +5,25 @@
  */
 package versiserver;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import javax.swing.JTextArea;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author data
  */
 public class FrameServer extends javax.swing.JFrame {
+    
 
     /**
      * Creates new form FrameServer
@@ -85,7 +91,7 @@ public class FrameServer extends javax.swing.JFrame {
     
     private void btnOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOkActionPerformed
         // TODO add your handling code here:
-        System.out.println("The capitalization server is running.");
+        System.out.println("The server is running.");
         int clientNumber = 1;
         try {
             ServerSocket listener = new ServerSocket(Integer.valueOf(InputPortSer.getText())); //buka port
@@ -100,6 +106,11 @@ public class FrameServer extends javax.swing.JFrame {
     private static class Capitalizer extends Thread {
         private Socket socket;
         private int clientNumber=1;
+        
+        private File myFile = null;
+        FileInputStream fis = null;
+        BufferedInputStream bis = null;
+        OutputStream os = null;
 
         public Capitalizer(Socket socket, int clientNumber) {
             this.socket = socket;
@@ -131,15 +142,59 @@ public class FrameServer extends javax.swing.JFrame {
                 // capitalized
                 while (true) {
                     String input = in.readLine(); //baca pesan dari client, jika inputnya null atau titik saja maka ptroses selesai
-                    if (input == null || input.equals(".")) {
+                    if (input == null || input.equals(".")) 
+                    {
                         break;
                     }
-                    out.println(input.toUpperCase()); //jika tidak, input uppercase dikirim ke client
+                    else if (input.equals("0")) 
+                    {
+//                        out.println("Daftar File: ");
+//                        out.println("1. A.txt");
+//                        out.println("2. B.txt");
+                        out.println("Daftar File: 1. A.txt \t 2. B.txt");
+                    }
+                    else if (input.equals("1")) {
+//                        new readFile(socket).start();
+                        myFile = new File("a.txt");
+                        byte[] mybytearray = new byte[(int) myFile.length()];
+                        fis = new FileInputStream(myFile);
+                        bis = new BufferedInputStream(fis);
+                        try {
+                            bis.read(mybytearray, 0, mybytearray.length);
+                            bis.close();
+                        } catch (IOException ex) {
+                            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        Integer lines = new String(mybytearray).split(System.getProperty("line.separator")).length;
+                        out.println(lines.toString());
+                        out.println(new String(mybytearray));
+                        //os = this.socket.getOutputStream();
+                        //os.write(mybytearray, 0, mybytearray.length);
+                        //os.flush();
+                    }
+                    //out.println(input.toUpperCase()); //jika tidak, input uppercase dikirim ke client
                     //System.out.println(input);
-                    
-                    
+                    else if (input.equals("2")) {
+                        myFile = new File("b.txt");
+                        byte[] mybytearray = new byte[(int) myFile.length()];
+                        fis = new FileInputStream(myFile);
+                        bis = new BufferedInputStream(fis);
+                        try {
+                            bis.read(mybytearray, 0, mybytearray.length);
+                            bis.close();
+                        } catch (IOException ex) {
+                            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        Integer lines = new String(mybytearray).split(System.getProperty("line.separator")).length;
+                        out.println(lines.toString());
+                        out.println(new String(mybytearray));
+                    } else {
+                        out.println(input);
+                    }
+                    log(input);
                 }
-            } catch (IOException e) {
+            } 
+                catch (IOException e) {
                 log("Error handling client# " + clientNumber + ": " + e);
             } finally {
                 try {
@@ -192,6 +247,7 @@ public class FrameServer extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new FrameServer().setVisible(true);
             }
